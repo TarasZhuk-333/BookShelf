@@ -1,0 +1,16 @@
+{
+    "hooks":  {
+                  "PreToolUse":  [
+                                     {
+                                         "hooks":  [
+                                                       {
+                                                           "command": "C:\\Users\\user\\BookShelf\\.venv\\Scripts\\python.exe -B C:\\Users\\user\\BookShelf\\scripts\\guardrails_hook.py",
+                                                           "timeout":  10,
+                                                           "type":  "command"
+                                                       }
+                                                   ],
+                                         "matcher":  ".*"
+                                     }
+                                 ]
+              }
+}
