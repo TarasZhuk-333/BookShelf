@@ -1,0 +1,335 @@
+{
+  "schema_version": "1.0",
+  "task_id": "bookshelf-search-plan-20261109-001",
+  "role": "Reviewer",
+  "status": "pass",
+  "previous_handoff": "artifacts/orchestration/bookshelf-search-plan-20261109-001/coder.json",
+  "summary": "approved: погоджений контракт реалізовано, критерії підтверджені статичним аналізом і USER_REPORTED результатом 41 passed in 0.30s. CD-01 і RV-01 закрито; відкритих дефектів не виявлено. Незалежний pytest Reviewer не виконував. Результат передається користувачу для фінального прийняття; commit/push не дозволені.",
+  "context": {
+    "baseline": [
+      "Робочий каталог: C:\\Users\\user\\BookShelf.",
+      "Baseline Planner: ?? docs/orchestration.md; ?? orchestration/; ?? scripts/guardrails_test_launcher.py; ?? tests/guardrail_sandbox/.",
+      "Baseline Coder додатково містить ?? artifacts/ із матеріалами orchestration; початковий git diff порожній.",
+      "За початковим handoff search.py і tests/test_search.py були відсутні; реалізація застосунку, UI та SQLite не входила до обсягу.",
+      "Поточний status містить baseline Coder та лише два додаткові файли реалізації: search.py і tests/test_search.py. Staged та unstaged diff відстежуваних файлів порожні.",
+      "AGENTS.md не знайдено в репозиторії та перевірених батьківських каталогах. Сторонні невідстежувані файли не приписано Coder."
+    ],
+    "sources": [
+      {
+        "reference": ".agents/skills/bookshelf-code-review/SKILL.md",
+        "access": "local",
+        "result": "REVIEWER: прочитано та застосовано read-only процедуру й обов'язкові джерела."
+      },
+      {
+        "reference": "artifacts/orchestration/bookshelf-search-plan-20261109-001/planner.json; approval.md; coder.json; reviewer-before-final.json",
+        "access": "local",
+        "result": "REVIEWER: task_id і ролі узгоджені; Coder посилається на planner.json. План Coder структурно збігається з Planner. SHA256 плану 40811DC896293DC5D35E33D2C0EE33FF4CB2BEE4C4AEED161E0600A8E676AD6F відповідає approval.md. Попередні CD-01 і RV-01 повторно оцінено."
+      },
+      {
+        "reference": "orchestration/schemas/handoff.schema.json",
+        "access": "local",
+        "result": "REVIEWER: прочитано схему 1.0; reported_by не підтримує User, тому джерело USER_REPORTED явно зазначене в result."
+      },
+      {
+        "reference": "docs/app-requirements.md; docs/harness-requirements.md; docs/guardrails.md; docs/ontology.md",
+        "access": "local",
+        "result": "REVIEWER: прочитано актуальні вимоги, FR-05, поділ бізнес-логіки та UI, правила MCP-only й BLOCK → WARN → ALLOW. Незалежне повторне виконання тестів Reviewer не встановлено як обов'язкова умова прийняття."
+      },
+      {
+        "reference": "search.py; tests/test_search.py; git status --short; git diff; git diff --cached",
+        "access": "local",
+        "result": "REVIEWER: повністю прочитано обидва нові файли; перевірюваний diff визначений як їх додавання. Поведінка й покриття відповідають погодженому контракту; нових залежностей немає."
+      },
+      {
+        "reference": "bookshelf-kb.get_note: Decisions/ADR-001 Technology Stack; Components/Streamlit UI; Components/SQLite Storage; Concepts/Book",
+        "access": "mcp",
+        "result": "REVIEWER: усі чотири читання успішні в цьому запуску. Python/pytest та окремий модуль узгоджені зі стеком; title і author обов'язкові. Суперечностей із погодженим обсягом не виявлено."
+      },
+      {
+        "reference": "Поточне повідомлення користувача",
+        "access": "local",
+        "result": "USER_REPORTED: tests/test_search.py — 41 passed in 0.30s через python -m pytest. Числового exit code не надано. Це не виконання Coder або Reviewer."
+      },
+      {
+        "reference": "https://git-scm.com/docs/git-diff",
+        "access": "mcp",
+        "result": "REVIEWER, web: перевірено офіційну документацію. --no-index неявно вмикає --exit-code; --check документовано несумісний із --exit-code. [Git diff documentation](https://git-scm.com/docs/git-diff)."
+      }
+    ],
+    "assumptions": [
+      "Самостійний модуль пошуку; інтеграція з UI та SQLite потребує окремого плану.",
+      "Контракт: search_books(books: Iterable[Mapping[str, object]], query: str) -> list[Mapping[str, object]]; title та author — обов'язкові рядки.",
+      "Збіг — буквальний підрядок у title АБО author після casefold обох сторін; інші поля не беруть участі.",
+      "Запит очищається strip; порожній або пробільний запит повертає всі записи. Зберігаються порядок, текст і посилання на записи; збіг в обох полях не дублює результат.",
+      "Транслітерація, нечіткий пошук, прирівнювання різних апострофів і Unicode-нормалізація поза контрактом."
+    ]
+  },
+  "plan": {
+    "steps": [
+      "Отримати погодження користувача на запропонований контракт і точний перелік файлів за WN-01. Сам план не дозволяє редагування.",
+      "Після погодження повторно перевірити baseline і відсутність конфліктів із новими файлами; не змінювати сторонні напрацювання.",
+      "Створити search.py з чистою функцією search_books: нормалізувати запит один раз через strip().casefold(), перевіряти буквальний підрядок у casefold назви або автора, не змінювати вхідні записи.",
+      "Додати параметризовані pytest-тести контракту в tests/test_search.py без Streamlit, SQLite, мережі та робочих даних.",
+      "Виконати погоджені перевірки й показати diff та фактичні результати. Підключення до майбутніх UI/SQLite винести в окремий план після появи їхніх контрактів."
+    ],
+    "allowed_files": [
+      "search.py",
+      "tests/test_search.py"
+    ],
+    "acceptance_criteria": [
+      "Фрагмент назви або автора знаходить запис незалежно від регістру для українського та латинського тексту.",
+      "Українські І/і, Ї/ї, Є/є, Ґ/ґ обробляються без втрати відповідності.",
+      "Використовується логічне АБО: запис зі збігом в обох полях не дублюється.",
+      "Немає збігу лише за описом; відсутній збіг повертає порожній список.",
+      "Порожній та пробільний запити повертають весь переданий каталог; зовнішні пробіли запиту ігноруються.",
+      "Символи %, _, лапки та SQL-подібний текст трактуються буквально.",
+      "Порядок і вміст початкових записів не змінюються; нові залежності не додаються.",
+      "Змінено лише два погоджені файли; UI, SQLite, MCP, KB, guardrails і Git-історія залишаються поза обсягом."
+    ],
+    "test_plan": [
+      "Параметризовані приклади назви «Лісова пісня» та автора «Леся Українка» з великим, малим і змішаним регістром та частковими запитами.",
+      "Окремі випадки І/Ї/Є/Ґ та латинського тексту для обох полів.",
+      "Перевірки OR, відсутності дублювання одного запису, збереження порядку та незмінності вхідних даних.",
+      "Порожній каталог, порожній/пробільний запит, зовнішні пробіли, відсутній збіг і збіг лише в описі.",
+      "Буквальні %, _, лапки та SQL-подібний запит.",
+      "У майбутній Coder-сесії за наявності Python і pytest: python -B -m pytest -p no:cacheprovider tests/test_search.py. Якщо середовище не готове, повідомити фактичну помилку без автоматичного встановлення залежностей.",
+      "Перевірити git diff --check, diff дозволених файлів і git status --short; зіставити з baseline. У Planner-сесії ці тести не виконуються."
+    ]
+  },
+  "rationale": [
+    "FR-05 визначає пошук за фрагментом; завдання уточнює незалежність від регістру, зокрема для українського тексту.",
+    "Чиста Python-функція з casefold забезпечує єдиний контракт порівняння та незалежне від UI тестування без додаткових залежностей.",
+    "Відсутність застосунку не дає наявних точок інтеграції; CRUD, UI й сховище потребують окремого обсягу.",
+    "Модуль зберігає технологічний стек ADR-001; окремий ADR не потрібний.",
+    "Усі потрібні MCP-читання успішні; модульний обсяг визначений погодженим планом.",
+    "Повідомлення користувача про проходження тестів прийнято як явно атрибутований доказ разом із незалежним читанням коду та покриття; вимоги не зобов'язують Reviewer повторювати запуск.",
+    "Ненульові результати no-index збережено як сирі результати команд; відсутність пробільних дефектів підтверджено окремою перевіркою вмісту."
+  ],
+  "approval": {
+    "reference": "artifacts/orchestration/bookshelf-search-plan-20261109-001/approval.md; SHA256 planner.json=40811DC896293DC5D35E33D2C0EE33FF4CB2BEE4C4AEED161E0600A8E676AD6F; поточне повідомлення користувача дозволяє фінальне read-only рев'ю",
+    "approved_files": [
+      "search.py",
+      "tests/test_search.py"
+    ]
+  },
+  "changed_files": [
+    {
+      "path": "search.py",
+      "change": "added",
+      "reason": "REVIEWER підтвердив заяву Coder: чиста функція, strip().casefold(), буквальний OR, збереження порядку й посилань, без мутацій та нових залежностей."
+    },
+    {
+      "path": "tests/test_search.py",
+      "change": "added",
+      "reason": "REVIEWER підтвердив заяву Coder: 41 параметризований випадок на даних у пам'яті покриває погоджені сценарії, генератор, незмінність та буквальні спецсимволи. Проходження повідомив користувач."
+    }
+  ],
+  "tests": [
+    {
+      "reported_by": "Coder",
+      "command": ".\\.venv\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests/test_search.py",
+      "status": "not_run",
+      "exit_code": null,
+      "result": "Збережено з coder.json: спроба запуску завершилася кодом 1 до pytest: did not find executable at 'C:\\Users\\user\\AppData\\Local\\Programs\\Python\\Python313\\python.exe'. Це збій запуску, не падіння тестів."
+    },
+    {
+      "reported_by": "Coder",
+      "command": "git diff --check",
+      "status": "passed",
+      "exit_code": 0,
+      "result": "Збережено з coder.json: помилок немає; нові невідстежувані файли додатково перевірено окремо."
+    },
+    {
+      "reported_by": "Coder",
+      "command": "git diff --no-index --check -- /dev/null search.py",
+      "status": "failed",
+      "exit_code": 1,
+      "result": "Збережено з coder.json, OPERATOR_REPORTED: сирий код 1, лише LF→CRLF warning, whitespace diagnostics немає. Ця комбінація параметрів не є самостійним критерієм якості; історичний запис коду 0 виправлено."
+    },
+    {
+      "reported_by": "Coder",
+      "command": "git diff --no-index --check -- /dev/null tests/test_search.py",
+      "status": "failed",
+      "exit_code": 1,
+      "result": "Збережено з coder.json, OPERATOR_REPORTED: сирий код 1, лише LF→CRLF warning, whitespace diagnostics немає. Це не доказ дефекту реалізації."
+    },
+    {
+      "reported_by": "Coder",
+      "command": "git diff --exit-code",
+      "status": "passed",
+      "exit_code": 0,
+      "result": "Збережено з coder.json: відстежувані файли не змінено; status містить baseline і два власні нові файли."
+    },
+    {
+      "reported_by": "Coder",
+      "command": "python -m pytest",
+      "status": "passed",
+      "exit_code": null,
+      "result": "Збережено з coder.json: USER_REPORTED — 41 passed in 0.30s для tests/test_search.py. Coder лише передає повідомлення; агент команду не виконував. Числовий exit code невідомий."
+    },
+    {
+      "reported_by": "Coder",
+      "command": "git diff --no-index --check --no-exit-code -- /dev/null search.py",
+      "status": "failed",
+      "exit_code": 1,
+      "result": "Збережено з coder.json, OPERATOR_REPORTED: сирий код 1, лише LF→CRLF warning, whitespace diagnostics немає; додавання --no-exit-code результату не змінило."
+    },
+    {
+      "reported_by": "Coder",
+      "command": "git diff --no-index --check --no-exit-code -- /dev/null tests/test_search.py",
+      "status": "failed",
+      "exit_code": 1,
+      "result": "Збережено з coder.json, OPERATOR_REPORTED: сирий код 1, лише LF→CRLF warning, whitespace diagnostics немає; додавання --no-exit-code результату не змінило."
+    },
+    {
+      "reported_by": "Coder",
+      "command": "PowerShell: inspect search.py and tests/test_search.py for trailing whitespace, indentation space-before-tab, conflict markers and blank lines at EOF",
+      "status": "passed",
+      "exit_code": 0,
+      "result": "Збережено з coder.json, OPERATOR_REPORTED: порушень не знайдено; файли не змінено. Статична перевірка, не pytest."
+    },
+    {
+      "reported_by": "Reviewer",
+      "command": "Статичне зіставлення handoff, approval, вимог, search.py та tests/test_search.py",
+      "status": "passed",
+      "exit_code": null,
+      "result": "REVIEWER: task_id, ланцюжок, SHA256 та план узгоджені. search.py:15–22 реалізує всі правила контракту; tests/test_search.py:10–69 містить 41 випадок: 8+12+3+1+2+3+12. Дані лише в пам'яті, побічних записів немає; перевірки не є виконанням pytest."
+    },
+    {
+      "reported_by": "Reviewer",
+      "command": "git diff --check",
+      "status": "passed",
+      "exit_code": 0,
+      "result": "REVIEWER_EXECUTED: діагностик немає. Невідстежувані файли ця команда не охоплює."
+    },
+    {
+      "reported_by": "Reviewer",
+      "command": "git diff --exit-code",
+      "status": "passed",
+      "exit_code": 0,
+      "result": "REVIEWER_EXECUTED: відстежувані файли не змінено; окремо переглянуто порожній staged diff."
+    },
+    {
+      "reported_by": "Reviewer",
+      "command": "git diff --no-index --check -- /dev/null search.py",
+      "status": "failed",
+      "exit_code": 1,
+      "result": "REVIEWER_EXECUTED: сирий код 1; лише попередження LF→CRLF, whitespace diagnostics немає. Це не встановлює дефекту коду."
+    },
+    {
+      "reported_by": "Reviewer",
+      "command": "git diff --no-index --check -- /dev/null tests/test_search.py",
+      "status": "failed",
+      "exit_code": 1,
+      "result": "REVIEWER_EXECUTED: сирий код 1; лише попередження LF→CRLF, whitespace diagnostics немає. Це не встановлює дефекту коду."
+    },
+    {
+      "reported_by": "Reviewer",
+      "command": "git diff --no-index --check --no-exit-code -- /dev/null search.py",
+      "status": "failed",
+      "exit_code": 1,
+      "result": "REVIEWER_EXECUTED: сирий код 1; лише LF→CRLF warning, whitespace diagnostics немає."
+    },
+    {
+      "reported_by": "Reviewer",
+      "command": "git diff --no-index --check --no-exit-code -- /dev/null tests/test_search.py",
+      "status": "failed",
+      "exit_code": 1,
+      "result": "REVIEWER_EXECUTED: сирий код 1; лише LF→CRLF warning, whitespace diagnostics немає."
+    },
+    {
+      "reported_by": "Reviewer",
+      "command": "PowerShell ReadAllText: trailing whitespace, indentation space-before-tab, conflict markers, blank EOF",
+      "status": "passed",
+      "exit_code": 0,
+      "result": "REVIEWER_EXECUTED: в обох файлах порушень не знайдено. Перевірка лише читає вміст; процес завершився кодом 0."
+    },
+    {
+      "reported_by": "Reviewer",
+      "command": "python -B -m pytest -p no:cacheprovider tests/test_search.py",
+      "status": "not_run",
+      "exit_code": null,
+      "result": "REVIEWER: незалежний запуск не виконувався. Попередній reviewer-before-final.json фіксує непрацездатний .venv; середовище не відновлювалося, sandbox не послаблювався. Для рішення враховано поточний USER_REPORTED успіх 41 тесту, без приписування його агенту."
+    }
+  ],
+  "remarks": [
+    {
+      "id": "CD-01",
+      "priority": "P2",
+      "evidence": "USER_REPORTED: 41 passed in 0.30s для tests/test_search.py. REVIEWER незалежно прочитав search.py:7–23 та tests/test_search.py:10–69 і підтвердив контракт та покриття. План допускає повідомлення про неможливий запуск; обов'язкового повторного запуску Reviewer немає.",
+      "recommendation": "Закрити попередню нестачу доказу виконання; зберегти атрибуцію USER_REPORTED і невідомий exit code.",
+      "state": "resolved"
+    },
+    {
+      "id": "RV-01",
+      "priority": "P3",
+      "evidence": "Актуальний coder.json зберігає фактичні коди 1 для no-index. REVIEWER повторив обидві форми команд для обох файлів: код 1, лише LF→CRLF warning. Окрема перевірка вмісту порушень не знайшла. Офіційна документація підтверджує неявний --exit-code та несумісність --check із ним: https://git-scm.com/docs/git-diff.",
+      "recommendation": "Закрити розбіжність протоколу; надалі розділяти сирий результат no-index та діагностику пробільних помилок.",
+      "state": "resolved"
+    },
+    {
+      "id": "PL-01",
+      "priority": "P1",
+      "evidence": "approval.md обмежує реалізацію окремим модулем; search.py не містить UI або SQLite.",
+      "recommendation": "Інтеграцію з майбутнім застосунком планувати окремо.",
+      "state": "resolved"
+    },
+    {
+      "id": "PL-02",
+      "priority": "P2",
+      "evidence": "search.py:15–22 реалізує strip, порожній запит, порядок і OR; tests/test_search.py:30–50 перевіряє ці правила, ідентичність записів та незмінність входу.",
+      "recommendation": "Зберігати погоджений контракт.",
+      "state": "resolved"
+    }
+  ],
+  "guardrails": [
+    {
+      "rule": "BLOCK → WARN → ALLOW; BL-01–BL-03; обмеження harness",
+      "assessment": "compliant",
+      "evidence": "У перевіреній реалізації немає видалення KB, роботи із секретами, зміни Git-історії або push. Reviewer виконував лише читання й безпечні перевірки."
+    },
+    {
+      "rule": "WN-01 — погоджені файли й контракт",
+      "assessment": "compliant",
+      "evidence": "Погодження та SHA256 перевірено. Реалізаційний diff — додавання search.py і tests/test_search.py; сторонній baseline відокремлено."
+    },
+    {
+      "rule": "WN-02 — зміни ADR",
+      "assessment": "not_applicable",
+      "evidence": "Архітектурні рішення не змінювалися; нових залежностей немає."
+    },
+    {
+      "rule": "WN-03; заборона commit/push/sync_note",
+      "assessment": "compliant",
+      "evidence": "Reviewer не виконував Git-записів або MCP-записів. Coder повідомляє про відсутність commit/push/sync_note; повного історичного журналу немає. pass не дозволяє ці дії."
+    },
+    {
+      "rule": "AL-01 — MCP-only доступ до KB",
+      "assessment": "compliant",
+      "evidence": "Чотири релевантні нотатки отримано через bookshelf-kb.get_note; прямого читання Vault та підміни іншою KB не було."
+    },
+    {
+      "rule": "AL-02 — безпечні локальні тести",
+      "assessment": "compliant",
+      "evidence": "Статично перевірені тести використовують дані в пам'яті без БД, мережі й робочих даних. Власний pytest не позначено виконаним; USER_REPORTED результат відокремлено."
+    },
+    {
+      "rule": "AL-03; read-only межі Reviewer",
+      "assessment": "compliant",
+      "evidence": "Код, тести, документація, конфігурація, KB та handoff не записувалися. Інші ролі й агенти не запускалися."
+    },
+    {
+      "rule": "Активне технічне блокування hook",
+      "assessment": "unverified",
+      "evidence": "Небезпечних дій для перевірки hook не виконувалося; політика, конфігурація та unit-тести не доводять активного блокування."
+    }
+  ],
+  "limitations": [
+    "Проходження 41 тесту підтверджене повідомленням користувача, без незалежного повторного виконання агентом та без числового exit code.",
+    "Попередній збій .venv є історичним доказом обмеження середовища агента; у цьому запуску інтерпретатор повторно не перевірявся.",
+    "Сторонній baseline зіставлено за переліком файлів; без початкових хешів неможливо довести незмінність кожного байта.",
+    "Відсутність історичних commit/push/KB-записів Coder оцінено за handoff і поточним станом, без повного журналу дій.",
+    "UI, CRUD, SQLite та наскрізне приймання всього застосунку поза погодженим обсягом.",
+    "Пам'ять використано як орієнтир щодо меж доказовості hook; актуальну політику прочитано незалежно.\n"
+  ]
+}

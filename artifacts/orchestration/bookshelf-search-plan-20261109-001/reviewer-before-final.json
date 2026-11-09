@@ -1,0 +1,279 @@
+{
+  "schema_version": "1.0",
+  "task_id": "bookshelf-search-plan-20261109-001",
+  "role": "Reviewer",
+  "status": "blocked",
+  "previous_handoff": "artifacts/orchestration/bookshelf-search-plan-20261109-001/coder.json",
+  "summary": "changes_requested: обов'язкові pytest-тести не виконано через непрацездатне середовище Python, тому approved/pass виключено. Статично реалізація та покриття відповідають погодженому плану; дефектів коду не виявлено. Виявлено розбіжність між повідомленими Coder та власними кодами завершення перевірок нових файлів.",
+  "context": {
+    "baseline": [
+      "Робочий каталог: C:\\Users\\user\\BookShelf.",
+      "Baseline Planner: ?? docs/orchestration.md; ?? orchestration/; ?? scripts/guardrails_test_launcher.py; ?? tests/guardrail_sandbox/.",
+      "Baseline Coder додатково містив ?? artifacts/; початковий git diff був порожнім.",
+      "За початковими handoff реалізація застосунку, UI, SQLite та тести пошуку були відсутні; search.py і tests/test_search.py створено в межах цього завдання.",
+      "Reviewer підтвердив порожні staged/unstaged diff відстежуваних файлів. Поточний status містить baseline Coder та лише два додаткові файли реалізації: search.py і tests/test_search.py.",
+      "Попереднього reviewer-N.json у каталозі запуску немає. Застосовних AGENTS.md не знайдено."
+    ],
+    "sources": [
+      {
+        "reference": ".agents/skills/bookshelf-code-review/SKILL.md",
+        "access": "local",
+        "result": "Прочитано й застосовано режим рев'ю без змін."
+      },
+      {
+        "reference": "artifacts/orchestration/bookshelf-search-plan-20261109-001/planner.json; approval.md; coder.json",
+        "access": "local",
+        "result": "task_id узгоджений; Coder посилається на planner.json, план Coder тотожний плану Planner. SHA256 planner.json дорівнює погодженому 40811DC896293DC5D35E33D2C0EE33FF4CB2BEE4C4AEED161E0600A8E676AD6F. Погоджено search.py і tests/test_search.py."
+      },
+      {
+        "reference": "orchestration/schemas/handoff.schema.json",
+        "access": "local",
+        "result": "Прочитано схему 1.0; рішення changes_requested наведено в summary, status=blocked є допустимим."
+      },
+      {
+        "reference": "docs/app-requirements.md; docs/harness-requirements.md; docs/guardrails.md; docs/ontology.md",
+        "access": "local",
+        "result": "Прочитано актуальні обов'язкові джерела. FR-05 і незалежне тестування бізнес-логіки відповідають модульному обсягу."
+      },
+      {
+        "reference": "search.py; tests/test_search.py; git status --short; git diff; git diff --cached",
+        "access": "local",
+        "result": "Повністю прочитано два нові невідстежувані файли. Перевірюваний diff визначений їхнім повним вмістом відносно відсутності в baseline. Попередні сторонні файли не приписано Coder."
+      },
+      {
+        "reference": "bookshelf-kb.get_note: Decisions/ADR-001 Technology Stack; Components/SQLite Storage; Components/Streamlit UI; Concepts/Book",
+        "access": "mcp",
+        "result": "Reviewer успішно прочитав усі чотири нотатки. Python і pytest відповідають ADR; title та author обов'язкові. Суперечностей погодженому модульному контракту немає. Описи UI та сховища не доводять наявності реалізації."
+      },
+      {
+        "reference": ".venv/pyvenv.cfg; ./.venv/Scripts/python.exe -B --version",
+        "access": "local",
+        "result": "Конфігурація посилається на Python313 поза workspace. Перевірка інтерпретатора завершилася кодом 1 з did not find executable; окрема перевірка базового шляху отримала Access is denied. Reviewer не встановлював причину поза доступним sandbox."
+      }
+    ],
+    "assumptions": [
+      "Самостійний модуль пошуку; інтеграція з UI та SQLite потребує окремого плану.",
+      "Контракт: search_books(books: Iterable[Mapping[str, object]], query: str) -> list[Mapping[str, object]]; title та author — обов'язкові рядки.",
+      "Збіг — буквальний підрядок у title АБО author після casefold обох сторін; інші поля не беруть участі.",
+      "Запит очищається strip; порожній або пробільний запит повертає всі записи. Зберігаються порядок, текст і посилання на записи; збіг в обох полях не дублює результат.",
+      "Транслітерація, нечіткий пошук, прирівнювання різних апострофів і Unicode-нормалізація поза контрактом."
+    ]
+  },
+  "plan": {
+    "steps": [
+      "Отримати погодження користувача на запропонований контракт і точний перелік файлів за WN-01. Сам план не дозволяє редагування.",
+      "Після погодження повторно перевірити baseline і відсутність конфліктів із новими файлами; не змінювати сторонні напрацювання.",
+      "Створити search.py з чистою функцією search_books: нормалізувати запит один раз через strip().casefold(), перевіряти буквальний підрядок у casefold назви або автора, не змінювати вхідні записи.",
+      "Додати параметризовані pytest-тести контракту в tests/test_search.py без Streamlit, SQLite, мережі та робочих даних.",
+      "Виконати погоджені перевірки й показати diff та фактичні результати. Підключення до майбутніх UI/SQLite винести в окремий план після появи їхніх контрактів."
+    ],
+    "allowed_files": [
+      "search.py",
+      "tests/test_search.py"
+    ],
+    "acceptance_criteria": [
+      "Фрагмент назви або автора знаходить запис незалежно від регістру для українського та латинського тексту.",
+      "Українські І/і, Ї/ї, Є/є, Ґ/ґ обробляються без втрати відповідності.",
+      "Використовується логічне АБО: запис зі збігом в обох полях не дублюється.",
+      "Немає збігу лише за описом; відсутній збіг повертає порожній список.",
+      "Порожній та пробільний запити повертають весь переданий каталог; зовнішні пробіли запиту ігноруються.",
+      "Символи %, _, лапки та SQL-подібний текст трактуються буквально.",
+      "Порядок і вміст початкових записів не змінюються; нові залежності не додаються.",
+      "Змінено лише два погоджені файли; UI, SQLite, MCP, KB, guardrails і Git-історія залишаються поза обсягом."
+    ],
+    "test_plan": [
+      "Параметризовані приклади назви «Лісова пісня» та автора «Леся Українка» з великим, малим і змішаним регістром та частковими запитами.",
+      "Окремі випадки І/Ї/Є/Ґ та латинського тексту для обох полів.",
+      "Перевірки OR, відсутності дублювання одного запису, збереження порядку та незмінності вхідних даних.",
+      "Порожній каталог, порожній/пробільний запит, зовнішні пробіли, відсутній збіг і збіг лише в описі.",
+      "Буквальні %, _, лапки та SQL-подібний запит.",
+      "У майбутній Coder-сесії за наявності Python і pytest: python -B -m pytest -p no:cacheprovider tests/test_search.py. Якщо середовище не готове, повідомити фактичну помилку без автоматичного встановлення залежностей.",
+      "Перевірити git diff --check, diff дозволених файлів і git status --short; зіставити з baseline. У Planner-сесії ці тести не виконуються."
+    ]
+  },
+  "rationale": [
+    "FR-05 визначає пошук за фрагментом; завдання уточнює незалежність від регістру, зокрема для українського тексту.",
+    "Чиста Python-функція з casefold забезпечує єдиний контракт порівняння та незалежне від UI тестування без додаткових залежностей.",
+    "Відсутність застосунку не дає наявних точок інтеграції; CRUD, UI й сховище потребують окремого обсягу.",
+    "Модуль зберігає технологічний стек ADR-001; окремий ADR не потрібний.",
+    "Усі потрібні MCP-читання успішні; модульний обсяг визначений погодженим планом."
+  ],
+  "approval": {
+    "reference": "artifacts/orchestration/bookshelf-search-plan-20261109-001/approval.md; SHA256 planner.json=40811DC896293DC5D35E33D2C0EE33FF4CB2BEE4C4AEED161E0600A8E676AD6F",
+    "approved_files": [
+      "search.py",
+      "tests/test_search.py"
+    ]
+  },
+  "changed_files": [
+    {
+      "path": "search.py",
+      "change": "added",
+      "reason": "Перевірено: чиста функція з strip, Unicode casefold, буквальним OR-порівнянням, збереженням порядку й посилань; відповідає заяві Coder."
+    },
+    {
+      "path": "tests/test_search.py",
+      "change": "added",
+      "reason": "Перевірено: параметризовані тести всіх погоджених сценаріїв, генератора, незмінності та буквальних спецсимволів на даних у пам'яті; відповідає заяві Coder. Виконання не підтверджено."
+    }
+  ],
+  "tests": [
+    {
+      "reported_by": "Coder",
+      "command": ".\\.venv\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests/test_search.py",
+      "status": "not_run",
+      "exit_code": null,
+      "result": "Спроба запуску завершилася з кодом 1 до виконання pytest: did not find executable at 'C:\\Users\\user\\AppData\\Local\\Programs\\Python\\Python313\\python.exe'. Тести не виконувалися. Оператор узгодив запис із контрактом not_run: exit_code=null, фактичний код невдалого запуску збережено в цьому описі."
+    },
+    {
+      "reported_by": "Coder",
+      "command": "git diff --check",
+      "status": "passed",
+      "exit_code": 0,
+      "result": "Помилок немає; нові невідстежувані файли додатково перевірено окремо."
+    },
+    {
+      "reported_by": "Coder",
+      "command": "git diff --no-index --check -- /dev/null search.py",
+      "status": "passed",
+      "exit_code": 0,
+      "result": "Помилок пробілів немає. Git попередив про майбутнє перетворення LF на CRLF."
+    },
+    {
+      "reported_by": "Coder",
+      "command": "git diff --no-index --check -- /dev/null tests/test_search.py",
+      "status": "passed",
+      "exit_code": 0,
+      "result": "Помилок пробілів немає. Git попередив про майбутнє перетворення LF на CRLF."
+    },
+    {
+      "reported_by": "Coder",
+      "command": "git diff --exit-code",
+      "status": "passed",
+      "exit_code": 0,
+      "result": "Відстежувані файли не змінено. Фінальний status містить baseline та лише два власні нові файли."
+    },
+    {
+      "reported_by": "Reviewer",
+      "command": "./.venv/Scripts/python.exe -B --version",
+      "status": "failed",
+      "exit_code": 1,
+      "result": "Перевірка доступності інтерпретатора: did not find executable at 'C:\\Users\\user\\AppData\\Local\\Programs\\Python\\Python313\\python.exe'. Це збій запуску, а не падіння тесту."
+    },
+    {
+      "reported_by": "Reviewer",
+      "command": ".\\.venv\\Scripts\\python.exe -B -m pytest -p no:cacheprovider tests/test_search.py",
+      "status": "not_run",
+      "exit_code": null,
+      "result": "Повторний pytest не запускався: попередня перевірка інтерпретатора неуспішна. Тести статично безпечні за AL-02, але працездатність Python не підтверджена; sandbox не послаблювався."
+    },
+    {
+      "reported_by": "Reviewer",
+      "command": "git diff --check",
+      "status": "passed",
+      "exit_code": 0,
+      "result": "Помилок немає; ця команда не охоплює невідстежувані файли."
+    },
+    {
+      "reported_by": "Reviewer",
+      "command": "git diff --no-index --check -- /dev/null search.py",
+      "status": "failed",
+      "exit_code": 1,
+      "result": "Фактичний код 1; виведено лише попередження LF→CRLF, діагностик помилок пробілів немає. Ненульовий результат no-index не доводить дефекту коду, але не відтворює заявлений Coder код 0."
+    },
+    {
+      "reported_by": "Reviewer",
+      "command": "git diff --no-index --check -- /dev/null tests/test_search.py",
+      "status": "failed",
+      "exit_code": 1,
+      "result": "Фактичний код 1; виведено лише попередження LF→CRLF, діагностик помилок пробілів немає. Ненульовий результат no-index не доводить дефекту коду, але не відтворює заявлений Coder код 0."
+    },
+    {
+      "reported_by": "Reviewer",
+      "command": "Статичне зіставлення planner.json, approval.md, coder.json, search.py та tests/test_search.py",
+      "status": "passed",
+      "exit_code": null,
+      "result": "Хеш погодження і план узгоджені. Код виконує погоджений алгоритм; усі критерії поведінки представлені тестами. Це статичний аналіз, не виконання pytest."
+    }
+  ],
+  "remarks": [
+    {
+      "id": "CD-01",
+      "priority": "P2",
+      "evidence": "coder.json повідомляє not_run для pytest. Власна перевірка ./.venv/Scripts/python.exe -B --version завершилася кодом 1 до запуску Python. Обов'язкове виконання tests/test_search.py не підтверджено.",
+      "recommendation": "Перед прийняттям виконати погоджену команду pytest у працездатному середовищі з pytest та надати фактичний результат. Відновлення середовища не виконувати в межах цього read-only рев'ю.",
+      "state": "open"
+    },
+    {
+      "id": "RV-01",
+      "priority": "P3",
+      "evidence": "У coder.json обидва git diff --no-index --check позначено exit_code=0. Reviewer для search.py і tests/test_search.py окремо отримав exit_code=1 без діагностик помилок пробілів.",
+      "recommendation": "Уточнити протокол перевірок: зберегти фактичні коди завершення та окремо пояснити відсутність помилок пробілів; не ототожнювати ненульовий no-index результат із дефектом реалізації.",
+      "state": "open"
+    },
+    {
+      "id": "PL-01",
+      "priority": "P1",
+      "evidence": "approval.md обмежує реалізацію окремим модулем пошуку без UI та SQLite; фактичний код дотримується цієї межі.",
+      "recommendation": "Інтеграцію з майбутнім застосунком планувати окремо.",
+      "state": "resolved"
+    },
+    {
+      "id": "PL-02",
+      "priority": "P2",
+      "evidence": "search.py:15–22 реалізує погоджені strip, порожній запит, порядок та OR; tests/test_search.py:30–50 містить відповідні перевірки.",
+      "recommendation": "Зберігати погоджений контракт; виконати тести після усунення блокування середовища.",
+      "state": "resolved"
+    }
+  ],
+  "guardrails": [
+    {
+      "rule": "BLOCK → WARN → ALLOW; BL-01–BL-03",
+      "assessment": "compliant",
+      "evidence": "У перевірених файлах немає операцій видалення KB, зміни Git-історії або push. Reviewer не виконував небезпечних дій; історичні дії Coder оцінено лише за наданим handoff і доступним станом."
+    },
+    {
+      "rule": "WN-01 — погоджений обсяг",
+      "assessment": "compliant",
+      "evidence": "task_id і SHA256 плану збігаються з approval.md. Два нові файли відповідають allowlist; попередні сторонні untracked файли не приписано Coder."
+    },
+    {
+      "rule": "WN-02 — архітектурні рішення",
+      "assessment": "not_applicable",
+      "evidence": "Рев'ю не потребувало зміни ADR; KB не записувалася."
+    },
+    {
+      "rule": "WN-03; commit/push/sync_note",
+      "assessment": "compliant",
+      "evidence": "Reviewer не виконував Git-записів, commit, push або sync_note. Coder повідомив про їх відсутність; повного незалежного журналу його дій немає. Цей висновок не дозволяє commit/push."
+    },
+    {
+      "rule": "AL-01 — KB тільки через MCP",
+      "assessment": "compliant",
+      "evidence": "Чотири релевантні нотатки прочитано через bookshelf-kb.get_note. Vault напряму не читався; інші KB не використовувалися."
+    },
+    {
+      "rule": "AL-02 — безпечні локальні тести",
+      "assessment": "compliant",
+      "evidence": "Тести використовують лише дані в пам'яті, без БД, мережі чи робочих даних. Через непрацездатність інтерпретатора pytest не виконувався й не позначений успішним."
+    },
+    {
+      "rule": "AL-03; межі Reviewer",
+      "assessment": "compliant",
+      "evidence": "Код, тести, документація, конфігурація, KB і handoff не записувалися; інші ролі та агенти не запускалися."
+    },
+    {
+      "rule": "Активне технічне блокування hook",
+      "assessment": "unverified",
+      "evidence": "Активність hook не перевірялася небезпечною дією. Політика, конфігурація та синтетичні unit-тести не є доказом активного блокування."
+    }
+  ],
+  "limitations": [
+    "Виконання pytest та фактичне проходження критеріїв приймання не підтверджено; статичний аналіз не замінює обов'язкових тестів.",
+    "Власний sandbox повернув Access is denied для базового шляху Python. Тому Reviewer підтверджує непрацездатність доступного інтерпретатора, але не незалежно доведену відсутність Python поза workspace.",
+    "Сторонні невідстежувані файли збігаються з baseline за переліком; без початкових хешів неможливо довести незмінність кожного їхнього байта.",
+    "Історичні твердження Coder про відсутність commit/push/KB-записів не підтверджені повним журналом операцій.",
+    "UI, CRUD та SQLite не входять до погодженого обсягу; їх відсутність не є дефектом цього інкременту.",
+    "Пам'ять використано лише як орієнтир щодо меж доказовості hook; актуальну політику прочитано в цьому запуску.\n"
+  ]
+}
