@@ -101,5 +101,15 @@ def sync_note(category: str, title: str) -> str:
         return f"SYNC_ERROR: {type(exc).__name__}: {exc}"
 
 
+@mcp.tool()
+def search_notes(query: str, top_k: int = 5) -> dict:
+    """Search local Markdown chunks by semantic similarity; stale indexes require rebuilding."""
+    from retrieval import RetrievalError, search
+    try:
+        return {"results": search(VAULT, query, top_k)}
+    except (RetrievalError, OSError) as exc:
+        return {"results": [], "error": str(exc)}
+
+
 if __name__ == "__main__":
     mcp.run(transport="stdio")
